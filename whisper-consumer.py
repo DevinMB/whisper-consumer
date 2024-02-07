@@ -18,23 +18,59 @@ producer = KafkaProducer(
     key_serializer=str.encode)
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.message and update.message.text:
-        username = update.message.from_user.username if update.message.from_user else 'Anonymous'
-        first_name = update.message.from_user.first_name
-        last_name = update.message.from_user.last_name
-        user_id= update.message.from_user.id
-        timestamp = datetime.now().timestamp()
+    timestamp = datetime.now().timestamp()
+    
+    chat_type = "Unknown"
+    chat_id = "Unknown"
+    user_id = "Unknown"
+    username = "Unknown"
+    first_name = "Unknown"
+    last_name = "Unknown"
+    title = "Unknown"
+    text = "No text"
 
-        message_data = {
+    if update.channel_post:
+        chat_type = update.channel_post.chat.type.name 
+        title = update.channel_post.chat.title
+        text = update.channel_post.text
+        chat_id = update.channel_post.chat.id
+        user_id = update.channel_post.from_user.id if update.message.from_user.id else 'Anonymous'
+        username = update.message.from_user.username if update.message.from_user else 'Anonymous'
+        first_name = update.message.from_user.first_name if update.message.from_user.first_name else 'Anonymous'
+        last_name = update.message.from_user.last_name if update.message.from_user.last_name else 'Anonymous'
+
+
+    elif update.message:
+        # Handling messages from private chats, groups, or supergroups
+        chat_type = update.message.chat.type.name  # Dynamically get the chat type as a string
+        chat_id = update.message.chat.id
+        username = update.message.from_user.username if update.message.from_user else 'Anonymous'
+        first_name = update.message.from_user.first_name if update.message.from_user.first_name else 'Anonymous'
+        last_name = update.message.from_user.last_name if update.message.from_user.last_name else 'Anonymous'
+        user_id = update.message.from_user.id if update.message.from_user.id else 'Anonymous'
+        text = update.message.text
+        if update.message.chat.type.name == "PRIVATE":
+            title = update.message.from_user.username
+        else:
+            title = update.message.chat.title if update.message.chat.title else "Group"
+        
+        text = update.message.text
+        chat_id = update.message.chat.id
+        title = update.message.chat.title if update.message.chat.title else update.message.from_user.username
+        
+    message_data = {
         "timestamp": timestamp,
+        "chat_type": chat_type,
+        "chat_id": chat_id,
+        "user_id": user_id,
         "username": username,
         "first_name": first_name,
         "last_name": last_name,
-        "user_id": user_id,
-        "message": update.message.text
-        }
+        "title": title,
+        "message": text
+    }
 
-        print(message_data)
+    print(message_data)
     
         # producer.send(topic_name, key=username, value=message_data)
 
