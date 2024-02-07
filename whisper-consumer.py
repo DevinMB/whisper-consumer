@@ -48,7 +48,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         if update.message.chat.type.name == "PRIVATE":
             title = update.message.from_user.username
         else:
-            title = update.message.chat.title if update.message.chat.title else "Group"
+            title = update.message.chat.title if update.message.chat.title else "SOMEGROUP"
         
         text = update.message.text
         chat_id = update.message.chat.id
