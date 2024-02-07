@@ -38,8 +38,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
     elif update.message:
-        # Handling messages from private chats, groups, or supergroups
-        chat_type = update.message.chat.type.name  # Dynamically get the chat type as a string
+        chat_type = update.message.chat.type.name 
         chat_id = update.message.chat.id
         username = update.message.from_user.username if update.message.from_user else 'Anonymous'
         first_name = update.message.from_user.first_name if update.message.from_user.first_name else 'Anonymous'
@@ -69,23 +68,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     print(message_data)
     
-        # producer.send(topic_name, key=username, value=message_data)
-
-
-
-# def handle_message(update, context):
-#     username = update.message.from_user.username
-#     message_text = update.message.text
-#     timestamp = datetime.now().timestamp()
-
-#     message_data = {
-#         "timestamp": timestamp,
-#         "user": username,
-#         "message": message_text
-#     }
-
-#     # producer.send(topic_name, key=username, value=message_data)
-#     print(message_data)
+    # producer.send(topic_name, key=username, value=message_data)
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(bot_token).build()
