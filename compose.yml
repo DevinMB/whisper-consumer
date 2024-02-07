@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  alpine-python:
+    image: alpine:latest
+    command: tail -f /dev/null
+    volumes:
+      - whisper_collector:/data  
+    tty: true  
+    container_name: whisper-collector-container
+    environment:
+      - TZ=America/Detroit
+    networks:
+      - alpine-net
+    entrypoint: |
+      /bin/sh -c "
+      apk add --no-cache python3 py3-pip git tar curl;
+      pip3 install pytz --break-system-packages;
+      pip3 install kafka-python --break-system-packages;
+      pip3 install python-dotenv --break-system-packages;
+      
+      RELEASE_TAG=v${RELEASE_VERSION}
+      FILE_PATH=/data/whisper-consumer-${RELEASE_VERSION}
+      
+      if [ ! -d $FILE_PATH ]; then
+        mkdir -p $FILE_PATH && \
+        curl -L https://github.com/DevinMB/whisper-consumer/archive/refs/tags/$RELEASE_TAG.tar.gz | tar xz --strip-components=1 -C $FILE_PATH;
+      fi
+      
+      # Run the Python file
+      python3 $FILE_PATH/whisper-consumer.py;
+      "
+
+networks:
+  alpine-net:
+    driver: bridge
+
+volumes:
+  whisper_collector:  
