@@ -68,7 +68,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     print(message_data)
     
-    # producer.send(topic_name, key=username, value=message_data)
+    producer.send(topic_name, key=title, value=message_data)
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(bot_token).build()
