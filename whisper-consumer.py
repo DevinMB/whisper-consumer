@@ -34,10 +34,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         title = update.channel_post.chat.title
         text = update.channel_post.text
         chat_id = update.channel_post.chat.id
-        user_id = update.channel_post.from_user.id if update.message.from_user.id else 'Anonymous'
-        username = update.message.from_user.username if update.message.from_user else 'Anonymous'
-        first_name = update.message.from_user.first_name if update.message.from_user.first_name else 'Anonymous'
-        last_name = update.message.from_user.last_name if update.message.from_user.last_name else 'Anonymous'
+        username = update.channel_post.author_signature
 
 
     elif update.message:
