@@ -30,8 +30,6 @@ services:
       fi
       
       python3 /data/whisper-consumer-v${RELEASE_VERSION}/whisper-consumer.py;
-      
-      tail -f /dev/null
       "
 
 networks:
