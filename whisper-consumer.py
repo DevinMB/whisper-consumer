@@ -1,6 +1,9 @@
 import os
 import json
+import threading
+import time
 from datetime import datetime
+from pathlib import Path
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 from dotenv import load_dotenv
@@ -12,13 +15,15 @@ bootstrap_servers=[os.getenv('BROKER')]
 topic_name=os.getenv('TOPIC_NAME')
 bot_token=os.getenv('BOT_TOKEN')
 
-producer = KafkaProducer(
-    bootstrap_servers=bootstrap_servers,
-    value_serializer=lambda m: json.dumps(m).encode('utf-8'),
-    key_serializer=str.encode)
+# The image HEALTHCHECK reads this file's age: it is touched every 30 s while
+# the producer is connected to Kafka.
+HEALTH_FILE = Path(os.getenv('HEALTH_FILE', '/tmp/healthy'))
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    timestamp = datetime.now().timestamp()
+producer = None  # created in main, so tests can import this module without Kafka
+
+
+def to_record(update: Update, timestamp: float) -> tuple[str, dict]:
+    """The Kafka key and value for one Telegram update."""
     
     chat_type = "Unknown"
     chat_id = "Unknown"
@@ -65,12 +70,31 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "title": title,
         "message": text
     }
+    return title, message_data
+
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    title, message_data = to_record(update, datetime.now().timestamp())
 
     print(message_data)
     
     producer.send(topic_name, key=title, value=message_data)
 
+
+def report_health() -> None:
+    while True:
+        if producer.bootstrap_connected():
+            HEALTH_FILE.touch()
+        time.sleep(30)
+
+
 if __name__ == '__main__':
+    producer = KafkaProducer(
+        bootstrap_servers=bootstrap_servers,
+        value_serializer=lambda m: json.dumps(m).encode('utf-8'),
+        key_serializer=str.encode)
+    threading.Thread(target=report_health, daemon=True).start()
+
     application = ApplicationBuilder().token(bot_token).build()
 
     message_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)

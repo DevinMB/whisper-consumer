@@ -1,0 +1,20 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write       # the gate merges Dependabot PRs
+  pull-requests: write  # ...and labels majors
+  packages: write       # push to GHCR on main
+  actions: write        # the gate starts the main build after merging
+jobs:
+  ci:
+    uses: DevinMB/workflows/.github/workflows/app-ci.yml@main
+    with:
+      image: ghcr.io/devinmb/whisper-consumer
+      test-command: python -m pytest -q -p no:cacheprovider tests
+      # Healthy means connected to Kafka and polling Telegram; CI has neither,
+      # so the tests above are the gate.
+      smoke: false
