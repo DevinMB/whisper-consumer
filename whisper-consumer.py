@@ -16,7 +16,7 @@ topic_name=os.getenv('TOPIC_NAME')
 bot_token=os.getenv('BOT_TOKEN')
 
 # The image HEALTHCHECK reads this file's age: it is touched every 30 s while
-# the producer is connected to Kafka.
+# the producer can reach Kafka.
 HEALTH_FILE = Path(os.getenv('HEALTH_FILE', '/tmp/healthy'))
 
 producer = None  # created in main, so tests can import this module without Kafka
@@ -81,9 +81,21 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     producer.send(topic_name, key=title, value=message_data)
 
 
+def kafka_reachable(producer, topic: str) -> bool:
+    """True when the producer can fetch the topic's partitions from Kafka.
+
+    Not bootstrap_connected(): kafka-python closes the bootstrap connection
+    once it has the cluster metadata, so that is False on a healthy producer.
+    """
+    try:
+        return bool(producer.partitions_for(topic))
+    except Exception:
+        return False
+
+
 def report_health() -> None:
     while True:
-        if producer.bootstrap_connected():
+        if kafka_reachable(producer, topic_name):
             HEALTH_FILE.touch()
         time.sleep(30)
 
