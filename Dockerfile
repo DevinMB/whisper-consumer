@@ -1,4 +1,4 @@
-FROM python:3.14.7-slim
+FROM python:3.15.0-slim
 
 # Debian security fixes land between base image releases, and CI's Trivy gate
 # fails on fixable HIGH and CRITICAL findings.
